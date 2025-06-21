@@ -1,20 +1,26 @@
-node_modules
-**/node_modules
+# Ignore everything by default
+*
 
-# Required for the async_init_with_node_modules unit test
-!test/handlers/async_init_with_node_modules/node_modules
+# Whitelist essential files for Docker build
+!package.json
+!bun.lock
+!bunfig.toml
+!tsconfig.json
+!.npmignore
 
-build
-**/build
+# Source code
+!bin/
+!bin/**
+!src/
+!src/**
 
-dist
-**/dist
+# Entrypoint script
+!entrypoint.js
 
-.idea
-**/.idea
+# Build scripts
+!build
+!build.ts
 
-package-lock.json
-**/package-lock.json
-
-.git
-.DS_STORE
+# Resources
+!resources/
+!resources/**

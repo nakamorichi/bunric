@@ -1,57 +1,44 @@
-build
-.DS_Store
+# Ignore everything by default
+*
+!*/
 
-test/integration/resources/init
+# Whitelist directories
+!.clinerules/**
+!.github/**
+!.vscode/**
+!bin/**
+!examples/**
+!resources/**
+!src/**
+!test/**
 
-# Logs
-logs
-*.log
-npm-debug.log*
+# Whitelist project files
+!.clineignore
+!.dockerignore
+!.env.test
+!.gitignore
+!.npmignore
+!bunfig.toml
+!build
+!build.ts
+!CODE_OF_CONDUCT.md
+!CONTRIBUTING.md
+!Dockerfile*
+!LICENSE
+!Makefile
+!MIGRATION.md
+!NOTICE
+!package.json
+!README.md
+!THIRD-PARTY-LICENSES
+!tsconfig.json
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
-# Dependency directories
+# Blacklist within whitelisted directories
 node_modules/
-
-# Required for the async_init_with_node_modules unit test
-!test/handlers/async_init_with_node_modules/node_modules
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-.eslintignore
-
-# Output of 'npm pack'
-*.tgz
-
-# Build
 dist/
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-deps/artifacts/
-deps/aws-lambda-cpp*/
-deps/curl*/
-
-# Local codebuild
-codebuild.*/
+coverage/
+logs/
+*.log
+.DS_Store
+*.tgz
+.*.bun-build

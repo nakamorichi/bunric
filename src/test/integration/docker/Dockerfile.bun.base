@@ -1,0 +1,151 @@
+##############################################################
+# Test base image for AWS Lambda Bun RIC with RIE
+# Based on production Dockerfile with RIE integration
+##############################################################
+
+# Set up architecture-specific args for caching
+ARG TARGETARCH
+ARG BASE_IMAGE="bellsoft/alpaquita-linux-base:stream-musl"
+ARG BUN_VERSION="1.2.14"
+ARG BUN_AMD64_ISA="default"
+
+FROM ${BASE_IMAGE} AS base
+
+ENV USER=app \
+	UID=1000
+ENV APP_HOME=/home/${USER}
+
+ENV PATH=/home/app/.bun/bin:${PATH}
+
+ENV GROUPNAME=${USER} \
+	GID=1000 \
+	NODE_ENV=production \
+	BUN_ENV=production \
+	BUN_CONFIG_TELEMETRY=false \
+	BUN_CONFIG_INSTALL_EXACT=true \
+	BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/app/.cache \
+	TMPDIR=/tmp \
+	DO_NOT_TRACK=1
+
+SHELL ["/bin/ash", "-eu", "-o", "pipefail", "-c"]
+
+RUN <<-EOF
+	cp -a /dev/null /var/log
+	cp -a /dev/null /usr/share/man
+	addgroup -g 1000 ${GROUPNAME}
+	adduser -h /home/app -g '' -s /bin/ash -G ${GROUPNAME} -D -u 1000 ${USER}
+EOF
+
+ARG BUN_VERSION \
+	TARGETARCH \
+	BUN_AMD64_ISA
+
+ENV BUN_VERSION=${BUN_VERSION}
+
+RUN --mount=type=cache,sharing=locked,id=bun-downloads-${TARGETARCH},target=/tmp/bun-cache <<-EOF
+	set -eu -o pipefail;
+	echo "=== Building for architecture: ${TARGETARCH} ==="
+	if [ "${TARGETARCH}" = "amd64" ]; then
+		if [ "${BUN_AMD64_ISA}" = "default" ]; then
+			BUN_ARCH_SUFFIX="x64-musl"
+			BUN_EXTRACT_PATH="bun-linux-x64-musl"
+			echo "AMD64 detected - using x64 STANDARD binary"
+		elif [ "${BUN_AMD64_ISA}" = "baseline" ]; then
+			BUN_ARCH_SUFFIX="x64-musl-baseline"
+			BUN_EXTRACT_PATH="bun-linux-x64-musl-baseline"
+			echo "AMD64 detected - using x64 BASELINE binary"
+		else
+			echo "ERROR: Unsupported BUN_AMD64_ISA: ${BUN_AMD64_ISA}" >&2
+			exit 1
+		fi
+	elif [ "${TARGETARCH}" = "arm64" ]; then
+		BUN_ARCH_SUFFIX="aarch64-musl"
+		BUN_EXTRACT_PATH="bun-linux-aarch64-musl"
+		echo "ARM64 detected - using aarch64 binary"
+	else
+		echo "ERROR: Unsupported architecture: ${TARGETARCH}" >&2
+		exit 1
+	fi
+	echo "=== Downloading Bun ${BUN_VERSION} for ${BUN_ARCH_SUFFIX} ==="
+	BUN_ZIP_FILE="/tmp/bun-cache/bun-linux-${BUN_ARCH_SUFFIX}-${BUN_VERSION}.zip"
+	if [ ! -f "${BUN_ZIP_FILE}" ]; then
+		echo "Downloading Bun binary (not in cache)..."
+		wget -O "${BUN_ZIP_FILE}" "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${BUN_ARCH_SUFFIX}.zip"
+	else
+		echo "Using cached Bun binary: ${BUN_ZIP_FILE}"
+	fi
+	unzip -j "${BUN_ZIP_FILE}" "${BUN_EXTRACT_PATH}/bun" -d /tmp
+	mv /tmp/bun /usr/bin/
+	echo "=== Successfully installed Bun binary for ${TARGETARCH} (${BUN_ARCH_SUFFIX}) ==="
+EOF
+
+RUN --mount=type=cache,uid=1000,gid=1000,sharing=locked,id=apk-cache-${TARGETARCH},target=/var/cache/apk <<-EOF
+    apk --update add libstdc++
+    echo "=== Testing Bun installation ==="
+    bun --version
+EOF
+
+# Install AWS Lambda RIE for testing
+RUN <<-EOF
+	RIE_ARCH_SUFFIX="" \
+	&& if [ "${TARGETARCH}" = "amd64" ]; then \
+	    RIE_ARCH_SUFFIX=""; \
+	elif [ "${TARGETARCH}" = "arm64" ]; then \
+	    RIE_ARCH_SUFFIX="-arm64"; \
+	else echo "Unsupported architecture: ${TARGETARCH}" && exit 1; fi
+	wget -O /usr/local/bin/aws-lambda-rie "https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie${RIE_ARCH_SUFFIX}"
+	chmod +x /usr/local/bin/aws-lambda-rie
+EOF
+
+# COPY --chown=1000:1000 resources/.bunfig.toml /home/app/.bunfig.toml
+# COPY --chown=0:0 resources/.bunfig.toml /root/.bunfig.toml
+
+USER 1000:1000
+WORKDIR /home/app
+
+##############################################################
+# Stage 1: Build the RIC package
+##############################################################
+FROM base AS builder
+
+COPY --chown=1000:1000 package.json tsconfig.json .npmignore ./
+
+ARG TARGETARCH
+
+RUN --mount=type=cache,uid=1000,gid=1000,sharing=locked,id=bun-transpiler-cache-${TARGETARCH},target="/home/app/.cache" \
+	--mount=type=cache,uid=1000,gid=1000,sharing=locked,id=bun-install-cache-${TARGETARCH},target="/home/app/.bun/install/cache" \
+	--mount=type=tmpfs,target=/tmp <<-EOF
+	bun install
+EOF
+
+COPY --chown=1000:1000 src/ ./src/
+COPY --chown=1000:1000 build.ts ./
+
+RUN --mount=type=cache,uid=1000,gid=1000,sharing=locked,id=bun-transpiler-cache-${TARGETARCH},target="/home/app/.cache" \
+	--mount=type=cache,uid=1000,gid=1000,sharing=locked,id=bun-install-cache-${TARGETARCH},target="/home/app/.bun/install/cache" \
+	--mount=type=tmpfs,target=/tmp <<-EOF
+	bun run pack
+EOF
+
+##############################################################
+# Stage 2: Test runner base with RIE
+##############################################################
+FROM base AS test-runner
+
+ENV AWS_LAMBDA_RUNTIME_API=127.0.0.1:8080 \
+	TZ="Asia/Tokyo" \
+	LC_ALL=C.utf8 \
+	PATH=/var/task/node_modules/.bin:${PATH}
+
+WORKDIR /var/task
+
+# Install the RIC package globally
+RUN --mount=type=bind,from=builder,source="/home/app/bunric.tgz",target="/home/app/bunric.tgz" <<-EOF
+	bun add --global bunric@/home/app/bunric.tgz
+EOF
+
+# Copy entry script
+COPY --chown=1000:1000 src/test/integration/docker/entrypoint.sh /var/task/entrypoint.sh
+RUN chmod +x /var/task/entrypoint.sh
+
+# This base will be extended by specific test images

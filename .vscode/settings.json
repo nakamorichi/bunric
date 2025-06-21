@@ -1,0 +1,22 @@
+{
+	"[dockerfile]": {
+		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
+	},
+	"editor.autoClosingQuotes": "never",
+	"editor.defaultFormatter": "biomejs.biome",
+	"files.exclude": {
+		"dist": false,
+		"out": false
+	},
+	"search.exclude": {
+		"dist": true,
+		"out": true
+	},
+	"typescript.tsc.autoDetect": "off",
+	"[toml]": {
+		"editor.defaultFormatter": "tamasfe.even-better-toml"
+	},
+	"[shellscript]": {
+		"editor.defaultFormatter": "foxundermoon.shell-format"
+	}
+}

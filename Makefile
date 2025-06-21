@@ -3,58 +3,61 @@ target:
 	@exit 0
 
 init:
-	npm install
+	bun install
 
 test:
-	npm run test
+	bun run test
 
-setup-codebuild-agent:
-	docker build -t codebuild-agent - < test/integration/codebuild-local/Dockerfile.agent
+# Removed setup-codebuild-agent target as CodeBuild is not being used.
+# setup-codebuild-agent:
+#	docker build -t codebuild-agent - < test/integration/codebuild-local/Dockerfile.agent
 
-test-smoke: setup-codebuild-agent
-	CODEBUILD_IMAGE_TAG=codebuild-agent test/integration/codebuild-local/test_one.sh test/integration/codebuild/buildspec.os.alpine.1.yml alpine 3.16 18
+test-smoke: # Removed setup-codebuild-agent dependency
+	./test/integration/run-bun-test.sh echo index.handler '{}' 'success'
 
-test-integ: setup-codebuild-agent
-	CODEBUILD_IMAGE_TAG=codebuild-agent DISTRO="$(DISTRO)" test/integration/codebuild-local/test_all.sh test/integration/codebuild
-
-copy-files:
-	npm run copy-files
-
-install:
-	BUILD=$(BUILD) npm install
+test-integ: # Removed setup-codebuild-agent dependency
+	@echo "Running integration test for 'echo' handler..."
+	./test/integration/run-bun-test.sh echo index.handler '{}' 'success'
+	@echo "Running integration test for 'programmatic' handler..."
+	# The refactored programmatic handler (index.mjs) exports 'handler'
+	# and returns a JSON object.
+	./test/integration/run-bun-test.sh programmatic index.handler '{"testName":"programmatic"}' '{"message":"success from programmatic handler","eventReceived":{"testName":"programmatic"}}'
 
 format:
-	npm run format
+	bun run format
 
 # Command to run everytime you make changes to verify everything works
 dev: init test
 
 # Verifications to run before sending a pull request
+# Note: 'build' target was simplified. 'test-smoke' might need future updates for Bun.
 pr: build dev test-smoke
 
 clean:
-	npm run clean
+	bun run clean
 
-build: copy-files
-	make install BUILD=1
-	npm run build
+build:
+	bun run build
 
 pack: build
-	npm pack
+	bun pack
 
-.PHONY: target init test setup-codebuild-agent test-smoke test-integ install format dev pr clean build pack copy-files
+.PHONY: target init test setup-codebuild-agent test-smoke test-integ format dev pr clean build pack
 
 define HELP_MESSAGE
 
 Usage: $ make [TARGETS]
 
 TARGETS
-	format      Run format to automatically update your code to match our formatting.
-	build       Builds the package.
+	format      Run format to automatically update your code to match our formatting (uses Biome).
+	build       Builds the package using Bun.
 	clean       Cleans the working directory by removing built artifacts.
-	dev         Run all development tests after a change.
-	init        Initialize and install the dependencies and dev-dependencies for this project.
-	pr          Perform all checks before submitting a Pull Request.
-	test        Run the Unit tests.
+	dev         Run bun install and then unit tests.
+	init        Initialize and install dependencies using Bun.
+	pr          Perform checks before submitting a Pull Request (build, dev tests, smoke tests).
+	test        Run the Unit tests using Bun.
+	pack        Builds and then creates a tarball using bun pack.
+	test-smoke  Run smoke tests (Docker-based, may need updates for Bun).
+	test-integ  Run integration tests (Docker-based, may need updates for Bun).
 
 endef

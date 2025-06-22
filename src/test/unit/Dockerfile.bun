@@ -1,0 +1,18 @@
+# Use an official Bun image as the base
+FROM oven/bun:1 AS base
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json first to leverage Docker cache
+COPY package.json ./
+
+# Install dependencies using Bun
+RUN bun install
+
+# Copy the rest of the application source code into the container
+COPY . .
+
+# Set the default command to run the unit tests
+# Assumes a script "test:unit" is defined in the root package.json that targets unit tests
+CMD ["bun", "run", "test:unit"]

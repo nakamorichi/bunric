@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Backup/manual script to build and push a multi-platform base image.
+# Targets the 'base' stage of Dockerfile.lambda-base-alpaquita.
+# OCI labels, compression, and attestations are applied via buildx.
+# Includes SOURCE_DATE_EPOCH for reproducible builds.
+
+set -eu -o pipefail
+export SOURCE_DATE_EPOCH=0 # For reproducible builds
+
+# --- Configuration (Environment variables with defaults) ---
+# https://hub.docker.com/r/bellsoft/alpaquita-linux-base/tags
+BASE_IMAGE="${BASE_IMAGE:-bellsoft/alpaquita-linux-base:stream-musl}"
+BUN_VERSION="${BUN_VERSION:-1.2.17}"
+
+# Set to 'default' for AMD64 AVX2 support
+# NOTE: 'default' does not work on Apple Silicon,
+# so use 'baseline' as default for convenience
+BUN_AMD64_ISA="${BUN_AMD64_ISA:-baseline}"
+IMAGE_VERSION_TAG="${IMAGE_VERSION_TAG:-20250622}"
+
+IMAGE_REPO="${IMAGE_REPO:-docker.io}"
+
+TARGET_PLATFORMS="${TARGET_PLATFORMS:-linux/arm64,linux/amd64}"
+TARGET="${TARGET:-runner}"       # Build target stage
+PUSH="${PUSH:-true}"             # Whether to push image and cache to registry
+LOAD_LOCAL="${LOAD_LOCAL:-true}" # Whether to load image locally (always enabled by default)
+
+# --- Derived Variables ---
+APP_BASE_IMAGE_URI="${IMAGE_REPO}/nakamorichi/bunric:${IMAGE_VERSION_TAG}"
+APP_CACHE_URI="${IMAGE_REPO}/nakamorichi/cache:bunric"
+
+# Variables for OCI annotations (overridable via environment)
+BUILD_DATE_ARG="${BUILD_DATE_ARG:-1970-01-01T00:00:00Z}" # Corresponds to SOURCE_DATE_EPOCH=0
+GIT_COMMIT_SHA_ARG="${GIT_COMMIT_SHA_ARG:-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')}"
+OCI_AUTHORS="${OCI_AUTHORS:-'Mikael Nakajima <mikael.nakajima@aawa.jp>'}"                           # From package.json
+OCI_URL="${OCI_URL:-https://github.com/nakamorichi/bunric}"                                         # From package.json
+OCI_DOCUMENTATION="${OCI_DOCUMENTATION:-https://github.com/nakamorichi/bunric/blob/main/README.md}" # Assumed README, adjust if specific docs exist
+OCI_SOURCE="${OCI_SOURCE:-https://github.com/nakamorichi/bunric}"
+OCI_VENDOR="${OCI_VENDOR:-Aawa Technologies}"
+OCI_LICENSES="${OCI_LICENSES:-Apache-2.0}" # From package.json
+OCI_TITLE="${OCI_TITLE:-Bunric - AWS Lambda Bun runtime interface client}"
+OCI_DESCRIPTION="${OCI_DESCRIPTION:-Provides an AWS Lambda Bun runtime interface client container image based on Alpaquita Linux MUSL}"
+
+# Construct the --output parameter string
+OUTPUT_PARAMS="type=image,name=${APP_BASE_IMAGE_URI},push=${PUSH},store=${LOAD_LOCAL},oci-mediatypes=true,compression=zstd,compression-level=9,force-compression=true"
+
+# Construct cache parameters
+CACHE_FROM_PARAMS="--cache-from=type=registry,ref=${APP_CACHE_URI}"
+if [ "${PUSH}" = "true" ]; then
+	CACHE_TO_PARAMS="--cache-to=type=registry,ref=${APP_CACHE_URI},mode=max,oci-mediatypes=true,compression=zstd,compression-level=9,force-compression=true,image-manifest=true"
+else
+	CACHE_TO_PARAMS=""
+fi
+
+echo "======================================================================"
+echo "Starting Reproducible Base Image Build and Push"
+echo "======================================================================"
+echo "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+echo "Target Image URI:  ${APP_BASE_IMAGE_URI}"
+echo "Target Platforms:  ${TARGET_PLATFORMS}"
+echo "Bun Version:       ${BUN_VERSION}"
+echo "Bun AMD64 ISA:     ${BUN_AMD64_ISA}"
+echo "Build Date (OCI):  ${BUILD_DATE_ARG}"
+echo "Git Commit SHA:    ${GIT_COMMIT_SHA_ARG}"
+echo "Cache From/To:     ${APP_CACHE_URI}"
+echo "----------------------------------------------------------------------"
+
+# Build the docker command using array to handle special characters properly
+DOCKER_ARGS=()
+DOCKER_ARGS+=("--progress=plain")
+DOCKER_ARGS+=("--platform=${TARGET_PLATFORMS}")
+DOCKER_ARGS+=("--pull")
+DOCKER_ARGS+=("--file=./Dockerfile")
+DOCKER_ARGS+=("--target=${TARGET}")
+DOCKER_ARGS+=("--build-arg=BASE_IMAGE=${BASE_IMAGE}")
+DOCKER_ARGS+=("--build-arg=BUN_VERSION=${BUN_VERSION}")
+DOCKER_ARGS+=("--build-arg=BUN_AMD64_ISA=${BUN_AMD64_ISA}")
+DOCKER_ARGS+=("${CACHE_FROM_PARAMS}")
+if [ -n "${CACHE_TO_PARAMS}" ]; then
+	DOCKER_ARGS+=("${CACHE_TO_PARAMS}")
+fi
+# DOCKER_ARGS+=("--attest=type=sbom")
+DOCKER_ARGS+=("--attest=type=provenance,mode=max")
+
+# Add OCI annotations
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.created=${BUILD_DATE_ARG}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.authors=${OCI_AUTHORS}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.url=${OCI_URL}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.documentation=${OCI_DOCUMENTATION}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.source=${OCI_SOURCE}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.version=${BUN_VERSION}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.revision=${GIT_COMMIT_SHA_ARG}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.vendor=${OCI_VENDOR}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.licenses=${OCI_LICENSES}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.title=${OCI_TITLE}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.description=${OCI_DESCRIPTION}")
+DOCKER_ARGS+=("--annotation=org.opencontainers.image.base.name=${BASE_IMAGE}")
+
+DOCKER_ARGS+=("--output=${OUTPUT_PARAMS}")
+DOCKER_ARGS+=(".")
+
+set -x
+docker buildx build "${DOCKER_ARGS[@]}"
+set +x
+
+echo "----------------------------------------------------------------------"
+echo "Successfully built and pushed ${APP_BASE_IMAGE_URI}"
+echo "Platforms: ${TARGET_PLATFORMS}"
+echo "======================================================================"

@@ -1,0 +1,11 @@
+{
+	"name": "programmatic-handler",
+	"version": "1.0.0",
+	"description": "Sample Lambda programmatic handler for Bun",
+	"author": "AWS Lambda",
+	"license": "Apache-2.0",
+	"dependencies": {},
+	"engines": {
+		"bun": ">=1.2.0"
+	}
+}

@@ -1,0 +1,12 @@
+# Test image for RIC as entrypoint (most common usage)
+# Tests the echo handler with RIE integration
+FROM local/bun-ric-base:latest AS test-runner
+
+# Copy the echo test handler
+COPY --chown=1000:1000 src/test/integration/test-handlers/echo/* ./
+
+# Use the entry script that handles RIE detection
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Default handler
+CMD ["index.handler"]

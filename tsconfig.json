@@ -1,0 +1,40 @@
+{
+	"compilerOptions": {
+		/* Base Options: */
+		"esModuleInterop": true,
+		"skipLibCheck": false, // Set to false for more thorough checking
+		"target": "ESNext",
+		"allowJs": false,
+		"resolveJsonModule": true,
+		"moduleDetection": "force",
+		// "isolatedModules": true, // verbatimModuleSyntax implies this and is more modern
+		"verbatimModuleSyntax": true, // Preferred for TS 5.0+
+		"allowImportingTsExtensions": true, // Allow imports to end with .ts
+
+		/* Strictness */
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noImplicitAny": false, // required for DTS plugin
+
+		/* For type-checking only (NO EMIT) */
+		"module": "ESNext",
+		"noEmit": true,
+
+		/* Library files - ESNext covers all modern JS features for Bun */
+		"lib": ["ESNext", "dom"], // Add "dom" to ensure Fetch API types are available
+
+		/* Bun-specific types */
+		"types": ["bun-types"],
+
+		/* Module Resolution Options */
+		"moduleResolution": "node",
+		"baseUrl": ".",
+		// "paths": { /* Configure path aliases here if needed */ },
+
+		/* Other */
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["**/test/**", "**/*.test.*"]
+}

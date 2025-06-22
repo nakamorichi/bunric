@@ -1,0 +1,21 @@
+# Settings for Bun (can be overriden by CLI arguments)
+# https://bun.sh/docs/runtime/bunfig
+telemetry = false
+
+[run]
+	# execute "run" commands with "bun" instead of "node" (note: bun's default is "node"
+	bun = true
+
+[install]
+	# set exact package versions in package.json
+	# for more precise dependency version management
+	exact = true
+
+# [test]
+# # Preload scripts for bun test
+# # Order might matter if there are dependencies between preload scripts.
+# # Assuming LoggingGlobals and FakeTelemetryTarget are general and should come first.
+# preload = [
+#   "./test/unit/LoggingGlobals.ts",
+#   "./test/unit/FakeTelemetryTarget.ts"
+# ]

@@ -1,0 +1,17 @@
+{
+  "name": "lambda-bun-example",
+  "version": "1.0.0",
+  "description": "AWS Lambda Function using Bun runtime",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "build": "docker build -t lambda-bun-example .",
+    "start": "docker run -p 9000:8080 lambda-bun-example",
+    "invoke": "curl -X POST \"http://localhost:9000/2015-03-31/functions/function/invocations\" -d '{}'"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {}
+}

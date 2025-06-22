@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "biomejs.biome",
+        "oven.bun-vscode",
+        "saoudrizwan.claude-dev",
+        "ms-azuretools.vscode-containers",
+        "tamasfe.even-better-toml",
+        "ms-vscode.vscode-typescript-next",
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format"
+    ]
+}

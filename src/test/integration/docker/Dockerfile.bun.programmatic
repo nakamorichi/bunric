@@ -1,0 +1,15 @@
+# Test image for RIC as import (programmatic usage)
+# Tests the programmatic handler with RIE integration
+FROM local/bun-ric-base:latest AS test-runner
+
+# Copy the programmatic test handler
+COPY --chown=1000:1000 src/test/integration/test-handlers/programmatic/* ./
+
+# Install dependencies for the programmatic handler if it has package.json
+RUN if [ -f package.json ]; then bun install --production --frozen-lockfile; fi
+
+# Use the entry script that handles RIE detection
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Default handler
+CMD ["index.handler"]

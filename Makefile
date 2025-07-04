@@ -6,7 +6,7 @@ init:
 	bun install
 
 test:
-	bun run test
+	bun run tests
 
 # Removed setup-codebuild-agent target as CodeBuild is not being used.
 # setup-codebuild-agent:

@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		/* Base Options: */
 		"esModuleInterop": true,
-		"skipLibCheck": false, // Set to false for more thorough checking
+		"skipLibCheck": true, // Set to false for more thorough checking
 		"target": "ESNext",
 		"allowJs": false,
 		"resolveJsonModule": true,

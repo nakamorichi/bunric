@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		/* Base Options: */
 		"esModuleInterop": true,
-		"skipLibCheck": true, // Set to false for more thorough checking
+		"skipLibCheck": false, // Set to false for more thorough checking
 		"target": "ESNext",
 		"allowJs": false,
 		"resolveJsonModule": true,
@@ -25,7 +25,7 @@
 		"lib": ["ESNext", "dom"], // Add "dom" to ensure Fetch API types are available
 
 		/* Bun-specific types */
-		"types": ["bun-types"],
+		"types": ["bun-types", "react"], // include "react" in order to avoid "React" namespace typecheck error
 
 		/* Module Resolution Options */
 		"moduleResolution": "node",
@@ -33,7 +33,8 @@
 		// "paths": { /* Configure path aliases here if needed */ },
 
 		/* Other */
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react-jsx" // set in order to avoid "React" namespace typecheck error
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["**/test/**", "**/*.test.*"]

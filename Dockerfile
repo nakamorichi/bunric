@@ -6,8 +6,8 @@
 # Set up architecture-specific args for caching
 ARG TARGETARCH
 ARG BASE_IMAGE="bellsoft/alpaquita-linux-base:stream-musl"
-ARG BUN_VERSION="1.2.18"
-ARG BUNRIC_VERSION="3.3.2"
+ARG BUN_VERSION=""
+ARG BUNRIC_VERSION=""
 ARG BUN_AMD64_ISA="default"
 
 FROM ${BASE_IMAGE} AS base

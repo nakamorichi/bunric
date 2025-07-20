@@ -11,14 +11,13 @@ export SOURCE_DATE_EPOCH=0 # For reproducible builds
 # --- Configuration (Environment variables with defaults) ---
 # https://hub.docker.com/r/bellsoft/alpaquita-linux-base/tags
 BASE_IMAGE="${BASE_IMAGE:-bellsoft/alpaquita-linux-base:stream-musl}"
-BUN_VERSION="${BUN_VERSION:-1.2.18}"
-BUNRIC_VERSION="${BUNRIC_VERSION:-3.3.2}"
+BUN_VERSION="${BUN_VERSION:-1.2.19}"
+BUNRIC_VERSION="${BUNRIC_VERSION:-3.3.3}"
 
 # Set to 'default' for AMD64 AVX2 support
 # NOTE: 'default' does not work on Apple Silicon,
 # so use 'baseline' as default for convenience
 BUN_AMD64_ISA="${BUN_AMD64_ISA:-baseline}"
-IMAGE_VERSION_TAG="${IMAGE_VERSION_TAG:-20250622}"
 
 IMAGE_REPO="${IMAGE_REPO:-docker.io}"
 
@@ -28,7 +27,7 @@ PUSH="${PUSH:-true}"             # Whether to push image and cache to registry
 LOAD_LOCAL="${LOAD_LOCAL:-true}" # Whether to load image locally (always enabled by default)
 
 # --- Derived Variables ---
-APP_BASE_IMAGE_URI="${IMAGE_REPO}/nakamorichi/bunric:${IMAGE_VERSION_TAG}"
+APP_BASE_IMAGE_URI="${IMAGE_REPO}/nakamorichi/bunric:${BUNRIC_VERSION}"
 APP_CACHE_URI="${IMAGE_REPO}/nakamorichi/cache:bunric"
 
 # Variables for OCI annotations (overridable via environment)

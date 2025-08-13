@@ -1,6 +1,6 @@
 {
 	// https://next.biomejs.dev/reference/configuration/
-	"$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -21,6 +21,9 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"complexity": {
+				"noStaticOnlyClass": "off"
+			},
 			// TODO: enable after fixing other issues
 			"correctness": {
 				"noUnusedVariables": "off",

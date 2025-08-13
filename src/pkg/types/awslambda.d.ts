@@ -4,7 +4,7 @@ export function createHttpResponseStream(
 ): any;
 
 // Legacy class interface for backward compatibility
-// biome-ignore lint/complexity/noStaticOnlyClass: Legacy compatibility interface
+// TODO: confirm whether could/should be removed
 export class HttpResponseStream {
 	static from(underlyingStream: any, prelude: any): any;
 }

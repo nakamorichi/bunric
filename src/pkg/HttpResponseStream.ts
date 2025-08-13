@@ -9,9 +9,8 @@
 
 // This constant is not directly used by this module anymore for setting content type,
 // but it's a good reference for the overall content type BunRapidClient will set.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const METADATA_PRELUDE_CONTENT_TYPE =
-	'application/vnd.awslambda.http-integration-response';
+// const METADATA_PRELUDE_CONTENT_TYPE =
+// 	'application/vnd.awslambda.http-integration-response';
 const DELIMITER_LEN = 8;
 
 interface Prelude {
@@ -58,7 +57,7 @@ export function createHttpResponseStream(
 }
 
 // Legacy class interface for backward compatibility
-// biome-ignore lint/complexity/noStaticOnlyClass: Legacy compatibility interface
+// TODO: confirm whether could/should be removed
 export class HttpResponseStream {
 	static from(
 		underlyingStream: ReadableStream<Uint8Array>,

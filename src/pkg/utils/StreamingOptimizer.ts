@@ -62,15 +62,15 @@ export class StreamingOptimizer {
 	private chunkQueue: ArrayBuffer[] = [];
 	private processingQueue: Promise<void>[] = [];
 	private maxQueueSize: number;
-	private targetThroughput: number; // bytes per second
+	// private targetThroughput: number; // bytes per second (TODO: confirm if this is needed)
 	private adaptiveThreshold: number = 0.8; // backpressure threshold
 
 	constructor(
 		maxQueueSize: number = 100,
-		targetThroughput: number = 10 * 1024 * 1024, // 10MB/s default
+		// targetThroughput: number = 10 * 1024 * 1024, // 10MB/s default
 	) {
 		this.maxQueueSize = maxQueueSize;
-		this.targetThroughput = targetThroughput;
+		// this.targetThroughput = targetThroughput;
 		this.stats = this.initializeStats();
 	}
 

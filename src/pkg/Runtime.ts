@@ -71,12 +71,7 @@ export default class Runtime {
 	 * Wait for the next invocation, process it, and schedule the next iteration.
 	 */
 	private async handleOnceNonStreaming(): Promise<void> {
-		// RAPIDClient.nextInvocation() now returns a more structured object
 		const invocation = await this.client.nextInvocation();
-		// @ts-ignore _rawInvocationData is for easier adaptation later, not part of official type
-		const rawInvocationData = invocation._rawInvocationData;
-
-		// @ts-ignore Headers might not be fully compatible, this is for transition
 		const invokeContext = new InvokeContext(invocation.headers || {});
 		invokeContext.updateLoggingContext();
 
@@ -90,11 +85,8 @@ export default class Runtime {
 			this._setErrorCallbacks(invokeContext.invokeId);
 			this._setDefaultExitListener(invokeContext.invokeId, markCompleted);
 
-			// bodyJson is now directly the parsed event payload
-			const eventPayload = invocation.bodyJson;
-
 			const result = this.handler(
-				eventPayload,
+				invocation.bodyJson,
 				invokeContext.attachEnvironmentData(callbackContext),
 				callback,
 			);
@@ -114,10 +106,6 @@ export default class Runtime {
 	 */
 	private async handleOnceStreaming(): Promise<void> {
 		const invocation = await this.client.nextInvocation();
-		// @ts-ignore _rawInvocationData is for easier adaptation later
-		const rawInvocationData = invocation._rawInvocationData;
-
-		// @ts-ignore Headers might not be fully compatible
 		const invokeContext = new InvokeContext(invocation.headers || {});
 		invokeContext.updateLoggingContext();
 
@@ -149,8 +137,11 @@ export default class Runtime {
 			const ctx = invokeContext.attachEnvironmentData(streamingContext);
 
 			verbose('Runtime::handleOnceStreaming', 'invoking handler');
-			const event = invocation.bodyJson;
-			const handlerResult = this.handler(event, handlerResponseStream, ctx);
+			const handlerResult = this.handler(
+				invocation.bodyJson,
+				handlerResponseStream,
+				ctx,
+			);
 			verbose('Runtime::handleOnceStreaming', 'handler returned');
 
 			if (!_isPromise(handlerResult)) {

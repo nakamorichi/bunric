@@ -243,6 +243,7 @@ async function _loadUserApp(
 				if (typeof options?.highWaterMark === 'number') {
 					handler[HANDLER_HIGHWATERMARK] = Number.parseInt(
 						String(options.highWaterMark),
+						10,
 					);
 				}
 				return handler;
@@ -311,7 +312,7 @@ function _highWaterMark(handler: any): number | undefined {
 		return undefined;
 	}
 
-	const hwm = Number.parseInt(String(handler[HANDLER_HIGHWATERMARK]));
+	const hwm = Number.parseInt(String(handler[HANDLER_HIGHWATERMARK]), 10);
 	return Number.isNaN(hwm) ? undefined : hwm;
 }
 

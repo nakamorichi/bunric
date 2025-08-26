@@ -71,7 +71,7 @@ function _withEnumerableProperties(error: any): any {
 			{
 				errorType: error.name,
 				errorMessage: error.message,
-				// @ts-ignore // code is not a standard property on Error but often used
+				// @ts-expect-error // code is not a standard property on Error but often used
 				code: error.code,
 			},
 			error,

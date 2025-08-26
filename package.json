@@ -1,6 +1,6 @@
 {
 	"name": "@aawa/bunric",
-	"version": "3.3.4",
+	"version": "3.3.5",
 	"description": "Bunric - AWS Lambda Bun runtime interface client",
 	"homepage": "https://github.com/nakamorichi/bunric",
 	"author": {
@@ -14,7 +14,7 @@
 		"bunric": "bin/index.js"
 	},
 	"engines": {
-		"bun": ">=1.2.20"
+		"bun": ">=1.2.21"
 	},
 	"scripts": {
 		"check": "tsc && biome check --fix",
@@ -35,9 +35,9 @@
 	},
 	"dependencies": {},
 	"devDependencies": {
-		"@biomejs/biome": "2.1.4",
+		"@biomejs/biome": "2.2.2",
 		"@types/bun": "1.2.20",
-		"@types/react": "19.1.10",
+		"@types/react": "19.1.11",
 		"bun-plugin-dts": "0.3.0"
 	}
 }

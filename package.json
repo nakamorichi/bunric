@@ -1,6 +1,6 @@
 {
 	"name": "@aawa/bunric",
-	"version": "3.3.5",
+	"version": "3.3.6",
 	"description": "Bunric - AWS Lambda Bun runtime interface client",
 	"homepage": "https://github.com/nakamorichi/bunric",
 	"author": {
@@ -14,7 +14,7 @@
 		"bunric": "bin/index.js"
 	},
 	"engines": {
-		"bun": ">=1.2.21"
+		"bun": ">=1.2.22"
 	},
 	"scripts": {
 		"check": "tsc && biome check --fix",

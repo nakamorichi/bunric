@@ -1,6 +1,6 @@
 {
 	"name": "@aawa/bunric",
-	"version": "3.3.7",
+	"version": "3.3.8",
 	"description": "Bunric - AWS Lambda Bun runtime interface client",
 	"homepage": "https://github.com/nakamorichi/bunric",
 	"author": {

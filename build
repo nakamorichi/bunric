@@ -11,8 +11,8 @@ export SOURCE_DATE_EPOCH=0 # For reproducible builds
 # --- Configuration (Environment variables with defaults) ---
 # https://hub.docker.com/r/bellsoft/alpaquita-linux-base/tags
 BASE_IMAGE="${BASE_IMAGE:-bellsoft/alpaquita-linux-base:stream-musl}"
-BUN_VERSION="${BUN_VERSION:-1.2.22}"
-BUNRIC_VERSION="${BUNRIC_VERSION:-3.3.6}"
+BUN_VERSION="${BUN_VERSION:-1.2.23}"
+BUNRIC_VERSION="${BUNRIC_VERSION:-3.3.7}"
 
 # Set to 'default' for AMD64 AVX2 support
 # NOTE: 'default' does not work on Apple Silicon,
